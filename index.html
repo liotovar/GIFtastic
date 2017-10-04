@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<title>GIFtastic</title>
+
+</head>
+<body>
+
+	<div class="row">
+   		<div id="showButtons" class="col-md-9"></div>
+	</div>
+
+	<div class="row">
+   		<div id="gifs-appear-here" class="col-md-9"></div>
+   		<div id="search-goes-here" class="col-md-3">
+   			    <form id="athlete-form">
+                <label for="addAthlete">Add an athlete</label>
+                <input type="text" id="addAthlete">
+                <br>
+                <input id="add-athlete" type="submit" value="Add an athlete">
+            </form>
+   		</div>
+	</div>
+
+  	<script type="text/javascript">
+
+  		var arr = ["Lionel Messi", "Cristiano Ronaldo", "Tom Brady", "Neymar", "Michael Jordan", "Kobe Bryant", 
+                 "Steph Curry", "Odell Beckham Jr.", "Kevin Durant", "Russell Westbrook", "Derrick Rose", 
+                 "Lebron James", "Jordan Spieth", "Tiger Woods"];
+
+      renderButtons();
+
+      function renderButtons() {
+          $("#showButtons").empty();
+          for (var i = 0; i < arr.length; i++) 
+          {
+            var a = $("<button />");
+            a.addClass("button");
+            a.attr("data-person", arr[i]);
+            a.text(arr[i]);
+            $("#showButtons").append(a);
+          }
+      }
+
+      $("#showButtons").on("click", ".button", function() {
+          console.log('.button click event triggered');
+          var person = $(this).attr("data-person");
+          var queryURL = `https://api.giphy.com/v1/gifs/search?q=${person}&api_key=dc6zaTOxFJmzC&limit=10`;
+
+          $.ajax({
+              url: queryURL,
+              method: "GET"
+            })
+            .done(function(response) {
+              var results = response.data;
+              // console.log(results);
+              for (var i = 0; i < results.length; i++) {
+
+                if (results[i].rating !== "r") {
+                  var gifDiv = $(`<span class='item'>`);
+                  var rating = results[i].rating;
+                  var p = $("<span>").html(`Rating: ${rating}`);
+                  var personImage = $("<img>");
+                  personImage.addClass("gif");
+                  personImage.attr("src", results[i].images.fixed_width.url);
+                  personImage.attr("data-animate", results[i].images.fixed_width.url);
+                  personImage.attr("data-still", results[i].images.fixed_width_still.url);
+                  personImage.attr("data-state", "animate");
+                  gifDiv.append(p);
+                  gifDiv.append(personImage);
+                  $("#gifs-appear-here").prepend(gifDiv);
+                }
+              }
+            });
+
+        });
+
+        $("#add-athlete").on("click", function(event){
+        	event.preventDefault();
+          var newAthlete = $("#addAthlete").val().trim();
+          // console.log(newAthlete);
+          arr.push(newAthlete);
+          // console.log(arr);
+          renderButtons();
+        });
+
+
+        $("#gifs-appear-here").on("click", ".gif", function() {
+          // console.log("Image click works");
+        	var state = $(this).attr("data-state");
+        	if(state === "still"){
+            // console.log(state);
+        		$(this).attr("src", $(this).attr("data-animate"));
+        		$(this).attr("data-state", "animate");
+            // console.log(this.src);
+        	} else if(state === "animate"){
+            // console.log(state);
+        		$(this).attr("src", $(this).attr("data-still"));
+        		$(this).attr("data-state", "still");
+            // console.log(this.src);
+        	}
+        });
+</script>
+</body>
+</html>
